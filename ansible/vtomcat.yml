@@ -1,0 +1,70 @@
+---
+- hosts: web01
+  become: yes
+  gather_facts: False
+  tasks:
+   - name: to check system connected or not
+     ping:
+   - name: update pkg
+     yum:
+       update_cache: yes
+   - name: Install EPEL-release
+     yum:
+       name: epel-release
+       state: present
+   - name: install java-1.8
+     yum:
+       name: java-1.8.0-openjdk
+       state: present
+   - name: create a group-tomcat
+     group:
+       name: tomcat
+   - name: create a user-tomcat
+     user:
+       name: tomcat
+       group: tomcat
+       home: /usr/share/tomcat
+       createhome: no
+   - name: create tomcat folder
+     file:
+       path: /opt/tomcat
+       state: directory
+       mode: 0755
+   - name: download tomcat8
+     get_url: url=https://www-us.apache.org/dist/tomcat/tomcat-8/v8.5.38/bin/apache-tomcat-8.5.38.tar.gz dest=/opt/tomcat/apache-tomcat-8.5.38.tar.gz
+   - name: unarchive tomcat
+     unarchive:
+       src: /opt/tomcat/apache-tomcat-8.5.38.tar.gz
+       dest: /opt/tomcat
+       remote_src: yes
+   - name: Symlink install directory
+     file:
+       src: /opt/tomcat/apache-tomcat-8.5.38
+       path: /usr/share/tomcat
+       state: link
+   - name: Change ownership of Tomcat installation
+     file:
+       path: /usr/share/tomcat/
+       owner: tomcat
+       group: tomcat
+       state: directory
+       recurse: yes
+   - name: start tomcat
+     command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/startup.sh
+   - name: Download latest VProfile.war file
+     get_url: url=http://{{nexusip}}:8081/nexus/content/repositories/VProfile-repo/{{groupid}}/{{time}}/{{build}}/{{vprofile_version}} dest=/tmp/ mode=755
+   - name: Stop tomcat service
+     command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/shutdown.sh
+   - name: Copy artifact to tomcat folder
+     shell: cp /tmp/{{vprofile_version}} /var/lib/tomcat/webapps
+   - name: Delete link to existing vprofile version
+     file:
+       path: /var/lib/tomcat/webapps/VProfile
+       state: absent
+   - name: Start tomcat service
+     command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/startup.sh
+   - name: Link latest vprofile version
+     file:
+       src: /var/lib/tomcat/webapps/{{time}}-{{build}}
+       dest: /var/lib/tomcat/webapps/VProfile
+       state: link
