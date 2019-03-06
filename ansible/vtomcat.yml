@@ -58,6 +58,7 @@
        state: absent
    - name: Start tomcat service
      command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/startup.sh
+   - wait_for: path=/var/lib/tomcat/webapps/{{time}}-{{build}}
    - name: Link latest vprofile version
      file:
        src: /var/lib/tomcat/webapps/{{time}}-{{build}}
