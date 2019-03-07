@@ -51,16 +51,16 @@
    - name: Stop tomcat service
      command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/shutdown.sh
    - name: Copy artifact to tomcat folder
-     shell: cp /tmp/{{vprofile_version}} /var/lib/tomcat/webapps
+     shell: cp /tmp/{{vprofile_version}} /opt/tomcat/apache-tomcat-8.5.38/webapps
    - name: Delete link to existing vprofile version
      file:
-       path: /var/lib/tomcat/webapps/VProfile
+       path: /opt/tomcat/apache-tomcat-8.5.38/webapps/VProfile
        state: absent
    - name: Start tomcat service
      command: nohup /opt/tomcat/apache-tomcat-8.5.38/bin/startup.sh
-   - wait_for: path=/var/lib/tomcat/webapps/{{time}}-{{build}}
+   - wait_for: path=/opt/tomcat/apache-tomcat-8.5.38/webapps/{{time}}-{{build}}
    - name: Link latest vprofile version
      file:
-       src: /var/lib/tomcat/webapps/{{time}}-{{build}}
-       dest: /var/lib/tomcat/webapps/VProfile
+       src: /opt/tomcat/apache-tomcat-8.5.38/webapps/{{time}}-{{build}}
+       dest: /opt/tomcat/apache-tomcat-8.5.38/webapps/VProfile
        state: link
